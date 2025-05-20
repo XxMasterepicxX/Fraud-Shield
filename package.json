@@ -1,0 +1,20 @@
+{
+  "name": "scamdetect",
+  "version": "1.0.0",
+  "description": "AI-powered scam detection Chrome extension",
+  "main": "manifest.json",
+  "scripts": {
+    "build": "echo 'Building ScamDetect extension...'",
+    "test": "echo 'Testing mode: All content flagged as scams'",
+    "start": "echo 'Load extension in Chrome: chrome://extensions/'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "security",
+    "scam-detection",
+    "phishing",
+    "fraud-protection"
+  ],
+  "author": "ScamDetect Team",
+  "license": "MIT"
+}

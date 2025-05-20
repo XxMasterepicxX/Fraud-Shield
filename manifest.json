@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Fraud Shield",
+  "version": "1.0.0",
+  "description": "Local AI-powered fraud detection for Gmail",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://mail.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/*"],
+      "js": ["src/content/gmail.js"],
+      "css": ["src/content/warning.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/background.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "32": "src/assets/icons/icon32.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "32": "src/assets/icons/icon32.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  }
+}
