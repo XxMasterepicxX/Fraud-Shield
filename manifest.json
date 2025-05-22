@@ -1,34 +1,45 @@
 {
   "manifest_version": 3,
-  "name": "Fraud Detector",
+  "name": "Fraud Shield",
   "version": "1.0.0",
-  "description": "Local AI-powered fraud detection for Gmail",
+  "description": "Universal AI-powered fraud detection",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "host_permissions": [
-    "*://mail.google.com/*"
+    "*://*/*"
   ],
   "content_scripts": [
     {
-      "matches": ["*://mail.google.com/*"],
-      "js": ["src/content/fraud-banner.js"],
-      "css": ["src/content/fraud-banner.css"],
+      "matches": ["*://*/*"],
+      "js": [
+        "src/core/base-scanner.js",
+        "src/platforms/gmail-platform.js",
+        "src/platforms/universal-platform.js",
+        "src/core/fraud-shield.js"
+      ],
+      "css": ["src/ui/fraud-styles.css"],
       "run_at": "document_idle"
     }
   ],
-  "icons": {
-    "16": "src/assets/icons/icon16.png",
-    "32": "src/assets/icons/icon32.png",
-    "48": "src/assets/icons/icon48.png",
-    "128": "src/assets/icons/icon128.png"
+  "background": {
+    "service_worker": "src/core/background.js"
   },
   "web_accessible_resources": [
     {
       "resources": [
         "src/assets/icons/*.png"
       ],
-      "matches": ["*://mail.google.com/*"]
+      "matches": ["*://*/*"]
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "src/ui/popup.html",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  }
 }

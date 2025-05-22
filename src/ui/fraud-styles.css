@@ -1,4 +1,4 @@
-.fraud-detector-banner {
+.fraudshield-warning {
     background: white;
     border: none;
     border-radius: 10px;
@@ -8,10 +8,11 @@
     margin: 16px 0;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
     display: block;
 }
 
-.fraud-header {
+.fraudshield-header {
     padding: 16px 20px;
     border-left: 6px solid #ff3636;
     display: flex;
@@ -19,18 +20,18 @@
     justify-content: space-between;
 }
 
-.fraud-left {
+.fraudshield-left {
     display: flex;
     align-items: center;
 }
 
-.fraud-icon {
+.fraudshield-icon {
     width: 36px;
     height: 36px;
     margin-right: 16px;
 }
 
-.fraud-title {
+.fraudshield-title {
     color: #ff3636;
     font-size: 18px;
     font-weight: 700;
@@ -38,7 +39,7 @@
     letter-spacing: 0.5px;
 }
 
-.fraud-score {
+.fraudshield-score {
     background: #ff3636;
     color: white;
     font-weight: 600;
@@ -48,7 +49,7 @@
     box-shadow: 0 2px 6px rgba(255, 54, 54, 0.3);
 }
 
-.fraud-expand-hint {
+.fraudshield-expand-hint {
     color: #666;
     font-size: 13px;
     opacity: 0.8;
@@ -56,20 +57,20 @@
     font-weight: 500;
 }
 
-.fraud-content {
+.fraudshield-content {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
     background: white;
 }
 
-.fraud-detector-banner.expanded .fraud-content {
+.fraudshield-warning.expanded .fraudshield-content {
     max-height: 500px;
     padding: 16px 20px;
     border-top: 2px solid #f0f0f0;
 }
 
-.fraud-reasons {
+.fraudshield-reasons {
     list-style: none;
     padding: 0;
     margin: 0 0 20px 0;
@@ -77,7 +78,7 @@
     font-size: 14px;
 }
 
-.fraud-reasons li {
+.fraudshield-reasons li {
     padding: 6px 0;
     position: relative;
     padding-left: 20px;
@@ -86,7 +87,7 @@
     font-weight: 500;
 }
 
-.fraud-reasons li::before {
+.fraudshield-reasons li::before {
     content: "\2022";
     position: absolute;
     left: 2px;
@@ -95,13 +96,13 @@
     font-weight: bold;
 }
 
-.fraud-buttons {
+.fraudshield-buttons {
     display: flex;
     gap: 12px;
     flex-shrink: 0;
 }
 
-.fraud-btn {
+.fraudshield-btn {
     padding: 10px 16px;
     border: none;
     border-radius: 6px;
@@ -113,26 +114,44 @@
     letter-spacing: 0.5px;
 }
 
-.fraud-btn-report {
+.fraudshield-btn-report {
     background: #ff3636;
     color: white;
     box-shadow: 0 2px 6px rgba(255, 54, 54, 0.3);
 }
 
-.fraud-btn-report:hover {
+.fraudshield-btn-report:hover {
     background: #e62e2e;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(255, 54, 54, 0.4);
 }
 
-.fraud-btn-dismiss {
+.fraudshield-btn-dismiss {
     background: #f8f8f8;
     color: #555;
     border: 1px solid #ddd;
 }
 
-.fraud-btn-dismiss:hover {
+.fraudshield-btn-dismiss:hover {
     background: #e5e5e5;
     transform: translateY(-2px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fraudshield-warning.gmail-conversation {
+    margin: 8px 0 16px 0;
+}
+
+.fraudshield-warning {
+    position: relative !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    clear: both !important;
+}
+
+.fraud-universal-warning {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    position: relative;
+    z-index: 1000;
 }

@@ -1,117 +1,114 @@
-console.log("Fraud Detector Banner - Email Switch Detection loaded");
-
-class FraudDetectorBanner {
-  constructor() {
-    this.processedEmails = new Set();
+/**
+ * Gmail Platform Handler - Keeps existing Gmail functionality exactly the same
+ */
+class GmailPlatform {
+  constructor(baseScanner) {
+    this.baseScanner = baseScanner;
+    this.scannedEmails = new Set();
     this.currentUrl = window.location.href;
-    this.init();
+    this.name = "gmail";
   }
 
-  init() {
+  isActive() {
+    return window.location.hostname.toLowerCase().includes("mail.google.com");
+  }
+
+  initialize() {
+    if (!this.isActive() || !this.baseScanner.protectionEnabled) return;
+    
     setTimeout(() => {
-      this.scanForEmails();
+      this.scanExistingEmails();
       this.observeNewEmails();
       this.observeUrlChanges();
     }, 1500);
   }
 
+  scanExistingEmails() {
+    if (!this.baseScanner.protectionEnabled) return;
+    
+    const emailContainers = document.querySelectorAll("[data-message-id]");
+    emailContainers.forEach(container => {
+      this.addFraudBanner(container);
+    });
+  }
+
   observeNewEmails() {
-    // Watch for new email elements
-    const observer = new MutationObserver((mutations) => {
+    if (!this.baseScanner.protectionEnabled) return;
+    
+    const observer = this.baseScanner.createObserver((mutations) => {
+      if (!this.baseScanner.protectionEnabled) return;
+      
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE && 
               node.hasAttribute && node.hasAttribute("data-message-id")) {
             this.addFraudBanner(node);
-            this.processedEmails.add(node.getAttribute("data-message-id"));
+            this.scannedEmails.add(node.getAttribute("data-message-id"));
           }
         });
       });
     });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
   }
 
   observeUrlChanges() {
-    // Detect when Gmail URL changes (different email selected)
-    const urlObserver = new MutationObserver(() => {
+    if (!this.baseScanner.protectionEnabled) return;
+    
+    const urlObserver = this.baseScanner.createObserver(() => {
       if (window.location.href !== this.currentUrl) {
         this.currentUrl = window.location.href;
-        console.log("Gmail URL changed, rescanning emails");
-        
-        // Small delay to let Gmail load the new email content
         setTimeout(() => {
-          this.scanForEmails();
+          if (this.baseScanner.protectionEnabled) {
+            this.scanExistingEmails();
+          }
         }, 500);
       }
     });
 
-    // Watch for title changes (Gmail updates title when switching emails)
-    urlObserver.observe(document.querySelector("title"), {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-
-    // Also check periodically for URL changes
     setInterval(() => {
       if (window.location.href !== this.currentUrl) {
         this.currentUrl = window.location.href;
-        console.log("Gmail URL changed (polling), rescanning emails");
         setTimeout(() => {
-          this.scanForEmails();
+          if (this.baseScanner.protectionEnabled) {
+            this.scanExistingEmails();
+          }
         }, 500);
       }
     }, 1000);
   }
 
-  scanForEmails() {
-    const emailContainers = document.querySelectorAll("[data-message-id]");
-    
-    emailContainers.forEach(container => {
-      const messageId = container.getAttribute("data-message-id");
-      
-      // Always try to add banner (it will check if it already exists)
-      this.addFraudBanner(container);
-    });
-  }
-
   addFraudBanner(emailContainer) {
-    if (emailContainer.querySelector(".fraud-detector-banner")) {
+    if (!this.baseScanner.protectionEnabled || emailContainer.querySelector(".fraudshield-warning")) {
       return;
     }
 
     const emailContent = emailContainer.querySelector(".ii.gt");
     if (emailContent) {
-      const banner = this.createIntegratedBanner();
+      const banner = this.createBigImprovedBanner();
       emailContent.insertBefore(banner, emailContent.firstChild);
     }
   }
 
-  createIntegratedBanner() {
+  createBigImprovedBanner() {
     const banner = document.createElement("div");
-    banner.className = "fraud-detector-banner";
+    banner.className = "fraudshield-warning gmail-conversation";
     
     const header = document.createElement("div");
-    header.className = "fraud-header";
+    header.className = "fraudshield-header";
     
     const left = document.createElement("div");
-    left.className = "fraud-left";
+    left.className = "fraudshield-left";
     
     const icon = document.createElement("img");
-    icon.className = "fraud-icon";
+    icon.className = "fraudshield-icon";
     icon.src = chrome.runtime.getURL("src/assets/icons/icon128.png");
-    icon.alt = "Shield";
+    icon.alt = "Fraud Shield";
     
     const title = document.createElement("span");
-    title.className = "fraud-title";
+    title.className = "fraudshield-title";
     title.textContent = "FRAUD DETECTED";
     
     const hint = document.createElement("span");
-    hint.className = "fraud-expand-hint";
+    hint.className = "fraudshield-expand-hint";
     hint.textContent = "Click to view details";
     
     left.appendChild(icon);
@@ -119,17 +116,17 @@ class FraudDetectorBanner {
     left.appendChild(hint);
     
     const score = document.createElement("div");
-    score.className = "fraud-score";
+    score.className = "fraudshield-score";
     score.textContent = "RISK: 95/100";
     
     header.appendChild(left);
     header.appendChild(score);
     
     const content = document.createElement("div");
-    content.className = "fraud-content";
+    content.className = "fraudshield-content";
     
     const reasons = document.createElement("ul");
-    reasons.className = "fraud-reasons";
+    reasons.className = "fraudshield-reasons";
     
     [
       "TESTING MODE: All emails flagged as fraud",
@@ -143,14 +140,14 @@ class FraudDetectorBanner {
     });
     
     const buttons = document.createElement("div");
-    buttons.className = "fraud-buttons";
+    buttons.className = "fraudshield-buttons";
     
     const reportBtn = document.createElement("button");
-    reportBtn.className = "fraud-btn fraud-btn-report";
+    reportBtn.className = "fraudshield-btn fraudshield-btn-report";
     reportBtn.textContent = "REPORT FRAUD";
     
     const dismissBtn = document.createElement("button");
-    dismissBtn.className = "fraud-btn fraud-btn-dismiss";
+    dismissBtn.className = "fraudshield-btn fraudshield-btn-dismiss";
     dismissBtn.textContent = "DISMISS";
     
     buttons.appendChild(reportBtn);
@@ -162,11 +159,12 @@ class FraudDetectorBanner {
     banner.appendChild(header);
     banner.appendChild(content);
     
+    // Event handlers - exactly the same as before
     banner.addEventListener("click", (e) => {
-      if (e.target.classList.contains("fraud-btn")) return;
+      if (e.target.classList.contains("fraudshield-btn")) return;
       
       banner.classList.toggle("expanded");
-      const hint = banner.querySelector(".fraud-expand-hint");
+      const hint = banner.querySelector(".fraudshield-expand-hint");
       if (hint) {
         hint.style.display = banner.classList.contains("expanded") ? "none" : "inline";
       }
@@ -184,10 +182,10 @@ class FraudDetectorBanner {
     
     return banner;
   }
+
+  reinitialize() {
+    this.initialize();
+  }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => new FraudDetectorBanner());
-} else {
-  new FraudDetectorBanner();
-}
+window.GmailPlatform = GmailPlatform;

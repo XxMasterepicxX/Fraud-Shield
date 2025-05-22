@@ -1,20 +1,21 @@
 {
-  "name": "scamdetect",
+  "name": "fraud-shield",
   "version": "1.0.0",
-  "description": "AI-powered scam detection Chrome extension",
+  "description": "AI-powered fraud detection Chrome extension",
   "main": "manifest.json",
   "scripts": {
-    "build": "echo 'Building ScamDetect extension...'",
-    "test": "echo 'Testing mode: All content flagged as scams'",
-    "start": "echo 'Load extension in Chrome: chrome://extensions/'"
+    "build": "echo 'Building Fraud Shield extension...'",
+    "test": "echo 'Testing mode: All content flagged as fraud'",
+    "start": "echo 'Load extension in Chrome: chrome://extensions/'",
+    "dev": "echo 'Development mode active'"
   },
   "keywords": [
     "chrome-extension",
     "security",
-    "scam-detection",
+    "fraud-detection",
     "phishing",
-    "fraud-protection"
+    "ai-protection"
   ],
-  "author": "ScamDetect Team",
+  "author": "Fraud Shield Team",
   "license": "MIT"
 }
