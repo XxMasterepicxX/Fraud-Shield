@@ -1,8 +1,9 @@
-console.log("Fraud Detector Banner - Integrated Layout loaded");
+console.log("Fraud Detector Banner - Email Switch Detection loaded");
 
 class FraudDetectorBanner {
   constructor() {
     this.processedEmails = new Set();
+    this.currentUrl = window.location.href;
     this.init();
   }
 
@@ -10,10 +11,12 @@ class FraudDetectorBanner {
     setTimeout(() => {
       this.scanForEmails();
       this.observeNewEmails();
-    }, 1500); // Reduced timeout for faster loading
+      this.observeUrlChanges();
+    }, 1500);
   }
 
   observeNewEmails() {
+    // Watch for new email elements
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
@@ -32,16 +35,47 @@ class FraudDetectorBanner {
     });
   }
 
+  observeUrlChanges() {
+    // Detect when Gmail URL changes (different email selected)
+    const urlObserver = new MutationObserver(() => {
+      if (window.location.href !== this.currentUrl) {
+        this.currentUrl = window.location.href;
+        console.log("Gmail URL changed, rescanning emails");
+        
+        // Small delay to let Gmail load the new email content
+        setTimeout(() => {
+          this.scanForEmails();
+        }, 500);
+      }
+    });
+
+    // Watch for title changes (Gmail updates title when switching emails)
+    urlObserver.observe(document.querySelector("title"), {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    // Also check periodically for URL changes
+    setInterval(() => {
+      if (window.location.href !== this.currentUrl) {
+        this.currentUrl = window.location.href;
+        console.log("Gmail URL changed (polling), rescanning emails");
+        setTimeout(() => {
+          this.scanForEmails();
+        }, 500);
+      }
+    }, 1000);
+  }
+
   scanForEmails() {
     const emailContainers = document.querySelectorAll("[data-message-id]");
     
     emailContainers.forEach(container => {
       const messageId = container.getAttribute("data-message-id");
       
-      if (!this.processedEmails.has(messageId)) {
-        this.addFraudBanner(container);
-        this.processedEmails.add(messageId);
-      }
+      // Always try to add banner (it will check if it already exists)
+      this.addFraudBanner(container);
     });
   }
 
@@ -50,7 +84,6 @@ class FraudDetectorBanner {
       return;
     }
 
-    // Insert banner at the natural top of email content
     const emailContent = emailContainer.querySelector(".ii.gt");
     if (emailContent) {
       const banner = this.createIntegratedBanner();
