@@ -1,4 +1,4 @@
-console.log("Fraud Detector Banner - Minimal Modern loaded");
+console.log("Fraud Detector Banner - Integrated Layout loaded");
 
 class FraudDetectorBanner {
   constructor() {
@@ -7,16 +7,23 @@ class FraudDetectorBanner {
   }
 
   init() {
-    // Wait for Gmail to load, then start monitoring
     setTimeout(() => {
       this.scanForEmails();
       this.observeNewEmails();
-    }, 2000);
+    }, 1500); // Reduced timeout for faster loading
   }
 
   observeNewEmails() {
-    const observer = new MutationObserver(() => {
-      this.scanForEmails();
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE && 
+              node.hasAttribute && node.hasAttribute("data-message-id")) {
+            this.addFraudBanner(node);
+            this.processedEmails.add(node.getAttribute("data-message-id"));
+          }
+        });
+      });
     });
 
     observer.observe(document.body, {
@@ -26,7 +33,6 @@ class FraudDetectorBanner {
   }
 
   scanForEmails() {
-    // Look for opened email conversations
     const emailContainers = document.querySelectorAll("[data-message-id]");
     
     emailContainers.forEach(container => {
@@ -40,38 +46,28 @@ class FraudDetectorBanner {
   }
 
   addFraudBanner(emailContainer) {
-    // Check if banner already exists
     if (emailContainer.querySelector(".fraud-detector-banner")) {
       return;
     }
 
-    // Find where to insert - after sender info, before email content
-    const insertPoint = this.findInsertionPoint(emailContainer);
-    
-    if (insertPoint) {
-      const banner = this.createMinimalModernBanner();
-      insertPoint.insertBefore(banner, insertPoint.firstChild);
+    // Insert banner at the natural top of email content
+    const emailContent = emailContainer.querySelector(".ii.gt");
+    if (emailContent) {
+      const banner = this.createIntegratedBanner();
+      emailContent.insertBefore(banner, emailContent.firstChild);
     }
   }
 
-  findInsertionPoint(emailContainer) {
-    // Look for the email content area where we want to insert the banner
-    return emailContainer.querySelector(".ii.gt") || emailContainer;
-  }
-
-  createMinimalModernBanner() {
+  createIntegratedBanner() {
     const banner = document.createElement("div");
     banner.className = "fraud-detector-banner";
     
-    // Create header
     const header = document.createElement("div");
     header.className = "fraud-header";
     
-    // Create left section
     const left = document.createElement("div");
     left.className = "fraud-left";
     
-    // Create shield icon
     const icon = document.createElement("img");
     icon.className = "fraud-icon";
     icon.src = chrome.runtime.getURL("src/assets/icons/icon128.png");
@@ -79,7 +75,7 @@ class FraudDetectorBanner {
     
     const title = document.createElement("span");
     title.className = "fraud-title";
-    title.textContent = "Fraud Detected";
+    title.textContent = "FRAUD DETECTED";
     
     const hint = document.createElement("span");
     hint.className = "fraud-expand-hint";
@@ -89,46 +85,40 @@ class FraudDetectorBanner {
     left.appendChild(title);
     left.appendChild(hint);
     
-    // Create score
     const score = document.createElement("div");
     score.className = "fraud-score";
-    score.textContent = "Risk: 95/100";
+    score.textContent = "RISK: 95/100";
     
     header.appendChild(left);
     header.appendChild(score);
     
-    // Create expandable content
     const content = document.createElement("div");
     content.className = "fraud-content";
     
-    // Create reasons list
     const reasons = document.createElement("ul");
     reasons.className = "fraud-reasons";
     
-    const reasonsList = [
+    [
       "TESTING MODE: All emails flagged as fraud",
-      "Local AI analysis detected suspicious patterns",
+      "Local AI analysis detected suspicious patterns", 
       "Potential phishing attempt identified",
       "Sender verification failed"
-    ];
-    
-    reasonsList.forEach(reason => {
+    ].forEach(reason => {
       const item = document.createElement("li");
       item.textContent = reason;
       reasons.appendChild(item);
     });
     
-    // Create buttons
     const buttons = document.createElement("div");
     buttons.className = "fraud-buttons";
     
     const reportBtn = document.createElement("button");
     reportBtn.className = "fraud-btn fraud-btn-report";
-    reportBtn.textContent = "Report";
+    reportBtn.textContent = "REPORT FRAUD";
     
     const dismissBtn = document.createElement("button");
     dismissBtn.className = "fraud-btn fraud-btn-dismiss";
-    dismissBtn.textContent = "Dismiss";
+    dismissBtn.textContent = "DISMISS";
     
     buttons.appendChild(reportBtn);
     buttons.appendChild(dismissBtn);
@@ -139,28 +129,19 @@ class FraudDetectorBanner {
     banner.appendChild(header);
     banner.appendChild(content);
     
-    // Add click to expand functionality
     banner.addEventListener("click", (e) => {
-      // Dont toggle if click is on buttons
-      if (e.target.classList.contains("fraud-btn")) {
-        return;
-      }
+      if (e.target.classList.contains("fraud-btn")) return;
       
       banner.classList.toggle("expanded");
       const hint = banner.querySelector(".fraud-expand-hint");
-      
-      if (banner.classList.contains("expanded")) {
-        if (hint) hint.style.display = "none";
-      } else {
-        if (hint) hint.style.display = "inline";
+      if (hint) {
+        hint.style.display = banner.classList.contains("expanded") ? "none" : "inline";
       }
     });
     
-    // Button event listeners
     reportBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      console.log("Reporting fraud...");
-      // TODO: Implement reporting
+      console.log("Fraud reported");
     });
     
     dismissBtn.addEventListener("click", (e) => {
@@ -172,7 +153,6 @@ class FraudDetectorBanner {
   }
 }
 
-// Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => new FraudDetectorBanner());
 } else {
