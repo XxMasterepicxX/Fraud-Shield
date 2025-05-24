@@ -28,8 +28,20 @@ class BaseScanner {
       if (message.action === "toggleProtection") {
         this.protectionEnabled = message.enabled;
         this.handleProtectionToggle();
+      } else if (message.action === "scanCurrentPage") {
+        this.triggerManualScan();
       }
     });
+  }
+
+  triggerManualScan() {
+    // Get active platform and trigger its scan
+    for (const [name, platform] of this.platforms) {
+      if (platform.isActive() && platform.scanCurrentPage) {
+        platform.scanCurrentPage();
+        break;
+      }
+    }
   }
 
   handleProtectionToggle() {
@@ -41,7 +53,7 @@ class BaseScanner {
   }
 
   removeAllWarnings() {
-    document.querySelectorAll(".fraudshield-warning, .fraud-universal-warning").forEach(el => {
+    document.querySelectorAll(".fraudshield-warning, .fraud-universal-warning, .fraud-discord-warning").forEach(el => {
       el.remove();
     });
   }

@@ -23,6 +23,16 @@ class GmailPlatform {
     }, 1500);
   }
 
+  scanCurrentPage() {
+    console.log('Fraud Shield: Manual Gmail scan triggered');
+    // Remove all existing warnings
+    document.querySelectorAll('.fraudshield-warning').forEach(el => el.remove());
+    // Clear scanned set
+    this.scannedEmails.clear();
+    // Rescan
+    this.scanExistingEmails();
+  }
+
   scanExistingEmails() {
     if (!this.baseScanner.protectionEnabled) return;
     
@@ -53,17 +63,6 @@ class GmailPlatform {
   observeUrlChanges() {
     if (!this.baseScanner.protectionEnabled) return;
     
-    const urlObserver = this.baseScanner.createObserver(() => {
-      if (window.location.href !== this.currentUrl) {
-        this.currentUrl = window.location.href;
-        setTimeout(() => {
-          if (this.baseScanner.protectionEnabled) {
-            this.scanExistingEmails();
-          }
-        }, 500);
-      }
-    });
-
     setInterval(() => {
       if (window.location.href !== this.currentUrl) {
         this.currentUrl = window.location.href;

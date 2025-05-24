@@ -1,3 +1,4 @@
+/* Gmail styles - unchanged */
 .fraudshield-warning {
     background: white;
     border: none;
@@ -142,16 +143,187 @@
     margin: 8px 0 16px 0;
 }
 
-.fraudshield-warning {
-    position: relative !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    clear: both !important;
+/* Universal Toast Styles */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
-.fraud-universal-warning {
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.fraud-toast {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     position: relative;
-    z-index: 1000;
+    width: 100%;
+}
+
+.fraud-toast-inner {
+    padding: 16px;
+}
+
+.fraud-toast-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.fraud-toast-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fraud-toast-icon {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.fraud-toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.fraud-toast-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.fraud-toast-message {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.fraud-toast-close {
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+.fraud-toast-close:hover {
+    opacity: 1;
+}
+
+.fraud-toast-expand {
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.fraud-toast-expand:hover {
+    background: rgba(0,0,0,0.06);
+}
+
+.fraud-toast-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    margin-top: 0;
+}
+
+.fraud-toast.expanded .fraud-toast-details {
+    max-height: 400px;
+    margin-top: 16px;
+}
+
+.fraud-toast-detail-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+    font-size: 14px;
+}
+
+.fraud-toast-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: rgba(0,0,0,0.03);
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.fraud-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.fraud-toast-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.fraud-toast-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fraud-toast-report {
+    color: white;
+}
+
+.fraud-toast-report:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.fraud-toast-dismiss {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.fraud-toast-dismiss:hover {
+    background: #d0d0d0;
 }

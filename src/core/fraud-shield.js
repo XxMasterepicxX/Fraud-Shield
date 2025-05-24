@@ -16,11 +16,13 @@ class FraudShield {
   }
 
   detectAndInitializePlatform() {
-    // Initialize Gmail platform
+    // Initialize all platforms
     const gmailPlatform = new GmailPlatform(this.baseScanner);
     this.baseScanner.registerPlatform("gmail", gmailPlatform);
     
-    // Initialize Universal platform
+    const discordPlatform = new DiscordPlatform(this.baseScanner);
+    this.baseScanner.registerPlatform("discord", discordPlatform);
+    
     const universalPlatform = new UniversalPlatform(this.baseScanner);
     this.baseScanner.registerPlatform("universal", universalPlatform);
     
@@ -28,6 +30,9 @@ class FraudShield {
     if (gmailPlatform.isActive()) {
       this.activePlatform = gmailPlatform;
       console.log("Fraud Shield - Gmail platform detected");
+    } else if (discordPlatform.isActive()) {
+      this.activePlatform = discordPlatform;
+      console.log("Fraud Shield - Discord platform detected");
     } else {
       this.activePlatform = universalPlatform;
       console.log("Fraud Shield - Universal platform detected");

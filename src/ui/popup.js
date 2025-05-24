@@ -74,8 +74,15 @@ function scanCurrentPage() {
   btn.textContent = "Scanning...";
   btn.disabled = true;
   
+  // Send scan message to content script
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, {
+      action: "scanCurrentPage"
+    });
+  });
+  
   setTimeout(() => {
-    btn.textContent = "✓ Complete";
+    btn.textContent = "Complete";
     
     setTimeout(() => {
       btn.textContent = originalText;

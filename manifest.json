@@ -16,6 +16,7 @@
       "js": [
         "src/core/base-scanner.js",
         "src/platforms/gmail-platform.js",
+        "src/platforms/discord-platform.js",
         "src/platforms/universal-platform.js",
         "src/core/fraud-shield.js"
       ],
