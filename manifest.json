@@ -9,12 +9,12 @@
   ],
   "host_permissions": [
     "*://*/*"
-  ],
-  "content_scripts": [
+  ],  "content_scripts": [
     {
       "matches": ["*://*/*"],
       "js": [
         "src/core/base-scanner.js",
+        "src/utils/mistral-api.js",
         "src/platforms/gmail-platform.js",
         "src/platforms/discord-platform.js",
         "src/platforms/universal-platform.js",

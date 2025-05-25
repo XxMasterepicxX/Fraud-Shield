@@ -325,7 +325,6 @@ class DiscordPlatform {
     
     return warning;
   }
-
   getRiskContent(level) {
     const contents = {
       low: `<strong>Suspicious Pattern Detected</strong><br>

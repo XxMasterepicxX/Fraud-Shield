@@ -2,10 +2,9 @@
   "name": "fraud-shield",
   "version": "1.0.0",
   "description": "AI-powered fraud detection Chrome extension",
-  "main": "manifest.json",
-  "scripts": {
+  "main": "manifest.json",  "scripts": {
     "build": "echo 'Building Fraud Shield extension...'",
-    "test": "echo 'Testing mode: All content flagged as fraud'",
+    "test": "echo 'Running fraud detection tests...'",
     "start": "echo 'Load extension in Chrome: chrome://extensions/'",
     "dev": "echo 'Development mode active'"
   },

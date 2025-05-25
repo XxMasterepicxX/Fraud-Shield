@@ -1,5 +1,26 @@
 console.log("Fraud Shield Background loaded");
 
+// Check for environment variables
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Fraud Shield installed/updated");
+  
+  // Initialize default settings if not already set
+  chrome.storage.sync.get(['protectionEnabled'], function(result) {
+    if (result.protectionEnabled === undefined) {
+      chrome.storage.sync.set({protectionEnabled: true});
+    }
+  });
+  
+  // Check for Mistral API key
+  chrome.storage.local.get(['mistralApiKey'], function(result) {
+    if (result.mistralApiKey) {
+      console.log("Mistral API key found");
+    } else {
+      console.log("No Mistral API key configured - AI features will use fallback mode");
+    }
+  });
+});
+
 class MockFraudDetector {
   async analyzeFraud(text, platform) {
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -69,8 +90,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ isFraud: false, score: 0, reasons: ["Analysis failed"] });
       });
     
+    return true; // Keep the message channel open for async response
+  }
+    // Handle .env file equivalent for API keys
+  if (message.action === "getEnvironmentVariable") {
+    chrome.storage.local.get([message.name], function(result) {
+      sendResponse({ value: result[message.name] || null });
+    });
+    return true; // Keep the message channel open for async response
+  }
+  
+  // Handle Mistral API key checks
+  if (message.action === "checkMistralKey") {
+    chrome.storage.local.get(['mistralApiKey'], function(result) {
+      sendResponse({
+        keyConfigured: !!result.mistralApiKey
+      });
+    });
+    return true; // Keep the message channel open for async response
+  }
+  
+  if (message.action === "reloadMistralConfig") {
+    // Broadcast to any tabs that Mistral config has changed
+    chrome.tabs.query({}, function(tabs) {
+      tabs.forEach(tab => {
+        try {
+          chrome.tabs.sendMessage(tab.id, { 
+            action: "mistralConfigUpdated"
+          });
+        } catch (e) {
+          // Ignore errors for inactive tabs
+        }
+      });
+    });
+    sendResponse({ success: true });
     return true;
   }
 });
 
-console.log("Mock AI Fraud Detector ready");
+console.log("Fraud Shield background service ready");

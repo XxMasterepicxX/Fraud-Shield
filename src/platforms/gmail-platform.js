@@ -1,45 +1,63 @@
 /**
  * Gmail Platform Handler - Keeps existing Gmail functionality exactly the same
  */
-class GmailPlatform {
-  constructor(baseScanner) {
+class GmailPlatform {  constructor(baseScanner) {
     this.baseScanner = baseScanner;
     this.scannedEmails = new Set();
     this.currentUrl = window.location.href;
     this.name = "gmail";
+    this.mistralAI = new MistralAI(); // Initialize Mistral AI
   }
 
   isActive() {
     return window.location.hostname.toLowerCase().includes("mail.google.com");
   }
-
-  initialize() {
+    initialize() {
     if (!this.isActive() || !this.baseScanner.protectionEnabled) return;
     
-    setTimeout(() => {
-      this.scanExistingEmails();
-      this.observeNewEmails();
-      this.observeUrlChanges();
-    }, 1500);
+    // Initialize Mistral AI
+    this.mistralAI.initialize().then(initialized => {
+      if (initialized) {
+        console.log('Fraud Shield Gmail: Mistral AI initialized successfully');
+      } else {
+        console.log('Fraud Shield Gmail: Mistral AI not available, using fallback mode');
+      }
+      
+      setTimeout(() => {
+        this.scanExistingEmails();
+        this.observeNewEmails();
+        this.observeUrlChanges();
+      }, 1500);
+    });
   }
-
-  scanCurrentPage() {
+  
+  async scanCurrentPage() {
     console.log('Fraud Shield: Manual Gmail scan triggered');
-    // Remove all existing warnings
-    document.querySelectorAll('.fraudshield-warning').forEach(el => el.remove());
-    // Clear scanned set
-    this.scannedEmails.clear();
-    // Rescan
-    this.scanExistingEmails();
+    
+    try {
+      // Remove all existing warnings
+      document.querySelectorAll('.fraudshield-warning').forEach(el => el.remove());
+      
+      // Clear scanned set
+      this.scannedEmails.clear();
+      
+      // Rescan emails
+      await this.scanExistingEmails();
+      
+      console.log('Fraud Shield: Gmail scan completed successfully');
+    } catch (error) {
+      console.error('Fraud Shield: Error during Gmail scan', error);
+    }
   }
-
-  scanExistingEmails() {
+  
+  async scanExistingEmails() {
     if (!this.baseScanner.protectionEnabled) return;
     
     const emailContainers = document.querySelectorAll("[data-message-id]");
-    emailContainers.forEach(container => {
-      this.addFraudBanner(container);
-    });
+    console.log(`Fraud Shield: Found ${emailContainers.length} emails to scan`);
+    
+    for (const container of emailContainers) {      await this.addFraudBanner(container);
+    }
   }
 
   observeNewEmails() {
@@ -71,23 +89,68 @@ class GmailPlatform {
             this.scanExistingEmails();
           }
         }, 500);
-      }
-    }, 1000);
+      }    }, 1000);
   }
-
-  addFraudBanner(emailContainer) {
+  
+  async addFraudBanner(emailContainer) {
     if (!this.baseScanner.protectionEnabled || emailContainer.querySelector(".fraudshield-warning")) {
       return;
     }
 
-    const emailContent = emailContainer.querySelector(".ii.gt");
-    if (emailContent) {
-      const banner = this.createBigImprovedBanner();
-      emailContent.insertBefore(banner, emailContent.firstChild);
-    }
+    try {
+      // Check if this email has already been scanned
+      const messageId = emailContainer.getAttribute("data-message-id");
+      if (this.scannedEmails.has(messageId)) {
+        return;
+      }
+      
+      // Mark as scanned
+      this.scannedEmails.add(messageId);      // Get email content
+      const emailContent = emailContainer.querySelector(".ii.gt");
+      if (emailContent) {
+        // Try to analyze with Mistral AI if available
+        let analysis = null;
+        
+        // Use the existing Mistral AI instance
+        try {
+          // Extract email text content for analysis
+          const emailText = emailContent.textContent || '';
+          const emailSubject = document.querySelector('.hP')?.textContent || 'No Subject';
+          
+          console.log('Fraud Shield Gmail: Analyzing email content', {
+            subject: emailSubject,
+            contentLength: emailText.length,
+            contentPreview: emailText.substring(0, 100).replace(/\n/g, ' ') + '...',
+            messageId: messageId,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Analyze with Mistral AI
+          analysis = await this.mistralAI.analyzeContent({
+            content: emailText,
+            url: window.location.href,
+            context: `Email with subject: ${emailSubject}`
+          });
+          
+          console.log('Fraud Shield Gmail: Mistral AI analysis result', {
+            success: analysis.success,
+            riskLevel: analysis.riskLevel || 'unknown',
+            confidence: analysis.confidence || 'N/A',
+            indicatorsCount: analysis.indicators ? analysis.indicators.length : 0,
+            messageId: messageId
+          });
+        } catch (error) {
+          console.error('Fraud Shield Gmail: Error analyzing email with Mistral AI', error);
+        }
+        
+        const banner = this.createBigImprovedBanner(analysis);
+        emailContent.insertBefore(banner, emailContent.firstChild);
+      }
+    } catch (error) {
+      console.error('Fraud Shield: Error adding fraud banner', error);    }
   }
-
-  createBigImprovedBanner() {
+  
+  createBigImprovedBanner(analysis = null) {
     const banner = document.createElement("div");
     banner.className = "fraudshield-warning gmail-conversation";
     
@@ -114,9 +177,18 @@ class GmailPlatform {
     left.appendChild(title);
     left.appendChild(hint);
     
+    // Use Mistral AI analysis result for the score if available
     const score = document.createElement("div");
     score.className = "fraudshield-score";
-    score.textContent = "RISK: 95/100";
+    
+    if (analysis && analysis.success) {
+      const riskLevel = analysis.riskLevel.toUpperCase();
+      const confidence = analysis.confidence || 90;
+      score.textContent = `RISK: ${confidence}/100 (${riskLevel})`;
+    
+    } else {
+      score.textContent = "RISK: N/A";
+    }
     
     header.appendChild(left);
     header.appendChild(score);
@@ -126,13 +198,27 @@ class GmailPlatform {
     
     const reasons = document.createElement("ul");
     reasons.className = "fraudshield-reasons";
-    
-    [
-      "TESTING MODE: All emails flagged as fraud",
+      // Use reasons from Mistral AI if available
+    let reasonsList = [
       "Local AI analysis detected suspicious patterns", 
       "Potential phishing attempt identified",
       "Sender verification failed"
-    ].forEach(reason => {
+    ];
+    
+    if (analysis && analysis.success && analysis.indicators && analysis.indicators.length > 0) {
+      reasonsList = analysis.indicators;
+      
+      // Add explanation if available
+      if (analysis.explanation) {
+        const explanation = document.createElement("div");
+        explanation.className = "fraudshield-explanation";
+        explanation.style.cssText = "margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-radius: 4px;";
+        explanation.textContent = analysis.explanation;
+        content.appendChild(explanation);
+      }
+    }
+    
+    reasonsList.forEach(reason => {
       const item = document.createElement("li");
       item.textContent = reason;
       reasons.appendChild(item);
@@ -153,6 +239,25 @@ class GmailPlatform {
     buttons.appendChild(dismissBtn);
     
     content.appendChild(reasons);
+    
+    // Add recommended action if available from Mistral AI
+    if (analysis && analysis.success && analysis.recommendedAction) {
+      const recommendedAction = document.createElement("div");
+      recommendedAction.className = "fraudshield-recommended-action";
+      recommendedAction.style.cssText = "margin-top: 10px; margin-bottom: 10px; padding: 8px; background: #fffde7; border-left: 3px solid #ffd600; border-radius: 2px;";
+      
+      const actionTitle = document.createElement("div");
+      actionTitle.style.cssText = "font-weight: bold; margin-bottom: 5px;";
+      actionTitle.textContent = "Recommended Action:";
+      
+      const actionContent = document.createElement("div");
+      actionContent.textContent = analysis.recommendedAction;
+      
+      recommendedAction.appendChild(actionTitle);
+      recommendedAction.appendChild(actionContent);
+      content.appendChild(recommendedAction);
+    }
+    
     content.appendChild(buttons);
     
     banner.appendChild(header);
