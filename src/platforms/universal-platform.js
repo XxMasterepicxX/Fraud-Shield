@@ -333,23 +333,18 @@ Key Links:\n${links}`;
     const toastId = Date.now();
     toast.className = 'fraud-toast';
     toast.dataset.risk = riskLevel;
-    
-    const colors = {
+      const colors = {
       info: { bg: '#e3f2fd', border: '#2196f3', icon: '#1976d2', text: '#0d47a1', iconBg: '#bbdefb' },
       scan: { bg: '#f3e5f5', border: '#9c27b0', icon: '#7b1fa2', text: '#4a148c', iconBg: '#e1bee7' },
-      low: { bg: '#fff8e1', border: '#ffc107', icon: '#f57c00', text: '#e65100', iconBg: '#ffecb3' },
+      low: { bg: '#e8f5e9', border: '#4caf50', icon: '#2e7d32', text: '#1b5e20', iconBg: '#c8e6c9' },
       medium: { bg: '#fff3e0', border: '#ff9800', icon: '#e64a19', text: '#bf360c', iconBg: '#ffccbc' },
       high: { bg: '#ffebee', border: '#f44336', icon: '#c62828', text: '#b71c1c', iconBg: '#ffcdd2' }
     };
     
-    const color = colors[riskLevel] || colors.medium;
-    
-    // Prepare analysis details if available
-    const confidence = analysis?.confidence || Math.floor(60 + Math.random() * 35);
+    const color = colors[riskLevel] || colors.medium;    // Prepare analysis details if available
     const riskFactors = analysis?.indicators?.length || Math.floor(2 + Math.random() * 5);
     const patternMatch = analysis?.success ? 'Yes' : (Math.random() > 0.5 ? 'Yes' : 'Partial');
     const threatType = analysis?.threatType || ['Phishing', 'Scam', 'Malware'][Math.floor(Math.random() * 3)];
-    const aiPowered = analysis?.success ? '<span style="color: #4caf50">✓ AI-Powered</span>' : '';
     
     toast.innerHTML = `
       <div class="fraud-toast-inner">
@@ -358,18 +353,17 @@ Key Links:\n${links}`;
             <div class="fraud-toast-icon" style="color: ${color.icon};">!</div>
           </div>
           <div class="fraud-toast-content">
-            <div class="fraud-toast-title" style="color: ${color.text};">${title} ${aiPowered}</div>
+            <div class="fraud-toast-title" style="color: ${color.text};">${title}</div>
             <div class="fraud-toast-message">${message}</div>
           </div>
           <div class="fraud-toast-close" style="color: ${color.text};">×</div>
         </div>
         <div class="fraud-toast-expand">View details</div>
         <div class="fraud-toast-details">
-          <div class="fraud-toast-detail-title">Analysis Results:</div>
-          <div class="fraud-toast-detail-grid">
+          <div class="fraud-toast-detail-title">Analysis Results:</div>          <div class="fraud-toast-detail-grid">
             <div class="fraud-detail-item">
-              <span class="detail-label">Confidence:</span>
-              <span class="detail-value">${confidence}%</span>
+              <span class="detail-label">Risk Level:</span>
+              <span class="detail-value" style="color: #FFFFFF; font-weight: bold;">${riskLevel.toUpperCase()}</span>
             </div>
             <div class="fraud-detail-item">
               <span class="detail-label">Risk Factors:</span>

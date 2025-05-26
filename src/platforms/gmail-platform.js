@@ -1,18 +1,19 @@
 /**
  * Gmail Platform Handler - Keeps existing Gmail functionality exactly the same
  */
-class GmailPlatform {  constructor(baseScanner) {
+class GmailPlatform {
+  constructor(baseScanner) {
     this.baseScanner = baseScanner;
     this.scannedEmails = new Set();
     this.currentUrl = window.location.href;
     this.name = "gmail";
     this.mistralAI = new MistralAI(); // Initialize Mistral AI
   }
-
   isActive() {
     return window.location.hostname.toLowerCase().includes("mail.google.com");
   }
-    initialize() {
+  
+  initialize() {
     if (!this.isActive() || !this.baseScanner.protectionEnabled) return;
     
     // Initialize Mistral AI
@@ -49,14 +50,14 @@ class GmailPlatform {  constructor(baseScanner) {
       console.error('Fraud Shield: Error during Gmail scan', error);
     }
   }
-  
-  async scanExistingEmails() {
+    async scanExistingEmails() {
     if (!this.baseScanner.protectionEnabled) return;
     
     const emailContainers = document.querySelectorAll("[data-message-id]");
     console.log(`Fraud Shield: Found ${emailContainers.length} emails to scan`);
     
-    for (const container of emailContainers) {      await this.addFraudBanner(container);
+    for (const container of emailContainers) {
+      await this.addFraudBanner(container);
     }
   }
 
@@ -77,7 +78,6 @@ class GmailPlatform {  constructor(baseScanner) {
       });
     });
   }
-
   observeUrlChanges() {
     if (!this.baseScanner.protectionEnabled) return;
     
@@ -89,10 +89,10 @@ class GmailPlatform {  constructor(baseScanner) {
             this.scanExistingEmails();
           }
         }, 500);
-      }    }, 1000);
+      }
+    }, 1000);
   }
-  
-  async addFraudBanner(emailContainer) {
+    async addFraudBanner(emailContainer) {
     if (!this.baseScanner.protectionEnabled || emailContainer.querySelector(".fraudshield-warning")) {
       return;
     }
@@ -105,7 +105,9 @@ class GmailPlatform {  constructor(baseScanner) {
       }
       
       // Mark as scanned
-      this.scannedEmails.add(messageId);      // Get email content
+      this.scannedEmails.add(messageId);
+      
+      // Get email content
       const emailContent = emailContainer.querySelector(".ii.gt");
       if (emailContent) {
         // Try to analyze with Mistral AI if available
@@ -149,12 +151,35 @@ class GmailPlatform {  constructor(baseScanner) {
     } catch (error) {
       console.error('Fraud Shield: Error adding fraud banner', error);    }
   }
-  
-  createBigImprovedBanner(analysis = null) {
+    createBigImprovedBanner(analysis = null) {
     const banner = document.createElement("div");
     banner.className = "fraudshield-warning gmail-conversation";
     
-    const header = document.createElement("div");
+    // Set banner border color based on risk level
+    if (analysis && analysis.success) {
+      const riskLevel = analysis.riskLevel.toLowerCase();
+      switch(riskLevel) {
+        case 'low':
+          banner.style.borderLeft = '4px solid #4caf50'; // Green
+          banner.classList.add('risk-low');
+          break;
+        case 'medium':
+          banner.style.borderLeft = '4px solid #ff9800'; // Yellow/Orange
+          banner.classList.add('risk-medium');
+          break;
+        case 'high':
+          banner.style.borderLeft = '4px solid #f44336'; // Red
+          banner.classList.add('risk-high');
+          break;
+        default:
+          banner.style.borderLeft = '4px solid #9e9e9e'; // Grey
+          banner.classList.add('risk-unknown');
+      }
+    } else {
+      banner.style.borderLeft = '4px solid #ff9800'; // Default yellow/orange
+      banner.classList.add('risk-medium');
+    }
+      const header = document.createElement("div");
     header.className = "fraudshield-header";
     
     const left = document.createElement("div");
@@ -167,7 +192,26 @@ class GmailPlatform {  constructor(baseScanner) {
     
     const title = document.createElement("span");
     title.className = "fraudshield-title";
-    title.textContent = "FRAUD DETECTED";
+    
+    // Set title text based on risk level
+    if (analysis && analysis.success) {
+      const riskLevel = analysis.riskLevel.toLowerCase();
+      switch(riskLevel) {
+        case 'low':
+          title.textContent = "LOW RISK DETECTED";
+          break;
+        case 'medium':
+          title.textContent = "POTENTIAL FRAUD";
+          break;
+        case 'high':
+          title.textContent = "HIGH RISK ALERT";
+          break;
+        default:
+          title.textContent = "FRAUD SHIELD";
+      }
+    } else {
+      title.textContent = "FRAUD SHIELD";
+    }
     
     const hint = document.createElement("span");
     hint.className = "fraudshield-expand-hint";
@@ -176,18 +220,33 @@ class GmailPlatform {  constructor(baseScanner) {
     left.appendChild(icon);
     left.appendChild(title);
     left.appendChild(hint);
-    
-    // Use Mistral AI analysis result for the score if available
+      // Use Mistral AI analysis result for the score if available
     const score = document.createElement("div");
     score.className = "fraudshield-score";
     
     if (analysis && analysis.success) {
-      const riskLevel = analysis.riskLevel.toUpperCase();
-      const confidence = analysis.confidence || 90;
-      score.textContent = `RISK: ${confidence}/100 (${riskLevel})`;
-    
-    } else {
-      score.textContent = "RISK: N/A";
+      const riskLevel = analysis.riskLevel.toLowerCase();
+      let riskColor;
+      
+      // Set color based on risk level
+      switch(riskLevel) {
+        case 'low':
+          riskColor = '#4caf50'; // Green
+          break;
+        case 'medium':
+          riskColor = '#ff9800'; // Yellow/Orange
+          break;
+        case 'high':
+          riskColor = '#f44336'; // Red
+          break;
+        default:
+          riskColor = '#9e9e9e'; // Grey for unknown
+      }
+        score.textContent = `RISK: ${riskLevel.toUpperCase()}`;
+      score.style.color = '#FFFFFF'; // Changed to white
+      score.style.fontWeight = 'bold';    } else {
+      score.textContent = "RISK: MEDIUM";
+      score.style.color = '#FFFFFF'; // Changed to white
     }
     
     header.appendChild(left);
@@ -259,33 +318,31 @@ class GmailPlatform {  constructor(baseScanner) {
     }
     
     content.appendChild(buttons);
-    
-    banner.appendChild(header);
+      banner.appendChild(header);
     banner.appendChild(content);
     
     // Event handlers - exactly the same as before
-    banner.addEventListener("click", (e) => {
+    banner.addEventListener("click", function(e) {
       if (e.target.classList.contains("fraudshield-btn")) return;
       
       banner.classList.toggle("expanded");
-      const hint = banner.querySelector(".fraudshield-expand-hint");
-      if (hint) {
-        hint.style.display = banner.classList.contains("expanded") ? "none" : "inline";
+      const expandHint = banner.querySelector(".fraudshield-expand-hint");
+      if (expandHint) {
+        expandHint.style.display = banner.classList.contains("expanded") ? "none" : "inline";
       }
     });
     
-    reportBtn.addEventListener("click", (e) => {
+    reportBtn.addEventListener("click", function(e) {
       e.stopPropagation();
       console.log("Fraud reported");
     });
     
-    dismissBtn.addEventListener("click", (e) => {
+    dismissBtn.addEventListener("click", function(e) {
       e.stopPropagation();
       banner.remove();
     });
     
-    return banner;
-  }
+    return banner;  }
 
   reinitialize() {
     this.initialize();

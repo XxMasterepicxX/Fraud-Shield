@@ -63,16 +63,14 @@ class MistralAI {
       url,
       context
     });
-    
-    // Check if we have valid content to analyze
+      // Check if we have valid content to analyze
     if (!content || content.trim().length < 50) {
       console.log('Mistral AI: Content too short for analysis, skipping');
       return {
         success: false,
         error: 'Content too short for meaningful analysis',
         fallbackMode: true,
-        riskLevel: 'medium',
-        confidence: 50,
+        riskLevel: 'low',
         explanation: 'The content is too brief for detailed analysis.'
       };
     }
@@ -87,7 +85,6 @@ class MistralAI {
           error: 'API key not configured',
           fallbackMode: true,
           riskLevel: 'medium',
-          confidence: 50,
           explanation: 'API key not configured, using fallback detection.'
         };
       }
@@ -115,15 +112,13 @@ class MistralAI {
       const parsedResponse = this.parseResponse(response);
       console.log('Mistral AI: Parsed analysis result', parsedResponse);
       
-      return parsedResponse;
-    } catch (error) {
+      return parsedResponse;    } catch (error) {
       console.error('Mistral AI analysis error:', error);
       return {
         success: false,
         error: error.message,
         fallbackMode: true,
         riskLevel: 'medium',
-        confidence: 50,
         explanation: `Error during analysis: ${error.message}`,
         recommendedAction: 'Please use your own judgment when interacting with this content.'
       };
@@ -136,15 +131,13 @@ class MistralAI {
     // Mistral has a context window limit, so we need to truncate long content
     // Mistral Medium has a context window of about 32k tokens
     const truncatedContent = content.length > 7000 ? content.substring(0, 7000) + '...' : content;
-    
-    // Create a structured system prompt that's clear and specific
+      // Create a structured system prompt that's clear and specific
     const systemPrompt = `You are a fraud detection expert specializing in identifying scams, phishing attempts, and misleading content online. 
 Your task is to analyze the provided content and determine if it contains signs of fraud or deception.
 
 You MUST respond in the following JSON format ONLY:
 {
   "riskLevel": "LOW|MEDIUM|HIGH", 
-  "confidence": number between 0-100,
   "indicators": ["indicator1", "indicator2", ...], 
   "explanation": "Clear explanation of your analysis",
   "recommendedAction": "What the user should do"
@@ -287,22 +280,15 @@ Respond ONLY with a JSON object as specified. Do not include any other text outs
         try {
           const resultJson = JSON.parse(jsonMatch[0]);
           console.log('Mistral AI: Parsed JSON successfully', resultJson);
-          
-          // Validate and normalize the parsed JSON
+            // Validate and normalize the parsed JSON
           const riskLevel = (resultJson.riskLevel || '').toLowerCase();
           const normalizedRiskLevel = ['low', 'medium', 'high'].includes(riskLevel) 
             ? riskLevel 
             : 'medium';
           
-          // Ensure confidence is a number between 0-100
-          let confidence = parseFloat(resultJson.confidence);
-          if (isNaN(confidence) || confidence < 0) confidence = 50;
-          if (confidence > 100) confidence = 100;
-          
           return {
             success: true,
             riskLevel: normalizedRiskLevel,
-            confidence: confidence,
             indicators: Array.isArray(resultJson.indicators) ? resultJson.indicators : [],
             explanation: resultJson.explanation || 'No detailed explanation provided.',
             recommendedAction: resultJson.recommendedAction || 'Exercise caution when interacting with this content.',
@@ -313,11 +299,9 @@ Respond ONLY with a JSON object as specified. Do not include any other text outs
           // Continue to fallback parsing
         }
       }
-      
-      // Fallback parsing if JSON structure not found or parsing failed
+        // Fallback parsing if JSON structure not found or parsing failed
       console.log('Mistral AI: No valid JSON found in response, using fallback parsing');
       const riskLevelMatch = responseText.match(/risk(?:\s+level)?:?\s*(low|medium|high)/i);
-      const confidenceMatch = responseText.match(/confidence:?\s*(\d+)/i);
       
       let riskLevel = 'medium';
       if (riskLevelMatch) {
@@ -327,22 +311,14 @@ Respond ONLY with a JSON object as specified. Do not include any other text outs
         console.log('Mistral AI: Could not find risk level in text, defaulting to medium');
       }
       
-      let confidence = 70;
-      if (confidenceMatch) {
-        confidence = parseInt(confidenceMatch[1]);
-        if (isNaN(confidence) || confidence < 0) confidence = 70;
-        if (confidence > 100) confidence = 100;
-      }
-      
       return {
         success: true,
         riskLevel: riskLevel,
-        confidence: confidence,
         indicators: [],
         explanation: responseText.substring(0, 300),
         recommendedAction: 'Review this content carefully before proceeding.',
         rawResponse: responseText
-      };    } catch (error) {
+      };} catch (error) {
       console.error('Mistral AI: Error parsing response', {
         error: error.message,
         stack: error.stack,
@@ -350,13 +326,11 @@ Respond ONLY with a JSON object as specified. Do not include any other text outs
           apiResponse.choices[0].message.content : 
           'No response content available'
       });
-      
-      return {
+        return {
         success: false,
         error: 'Failed to parse AI response: ' + error.message,
         fallbackMode: true,
         riskLevel: 'medium',
-        confidence: 50,
         indicators: ['Error in AI analysis'],
         explanation: 'The fraud detection system encountered an error while analyzing this content.',
         recommendedAction: 'Proceed with caution and use your best judgment.',
